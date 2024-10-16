@@ -16,27 +16,36 @@ interface TransactionRecord {
     交易金额: number;
 }
 
-// 解析金额，将带逗号的金额转换为数字
+// 解析金额，将带货币符号和逗号的金额转换为数字
 function parseAmount(amountStr: string): number | null {
-    const result = Number(amountStr.replaceAll(',', '')); // 移除逗号并转换为数字
-    if (isNaN(result)) return 0
-    return result
+    if (amountStr.trim() === '--') {
+        return null;
+    }
+    // 提取数字部分，包括可能的负号和小数点
+    const numericPart = amountStr.replace(/[^\d\.-]/g, '');
+    if (numericPart === '') return null;
+    const result = Number(numericPart);
+    if (isNaN(result)) return null;
+    return result;
 }
 
 // 解析每一行文本为交易记录对象
 function parseTransactionLine(line: string): TransactionRecord {
-    const fields = line.split(/\s+/);  // 使用正则表达式按空格拆分
+    const fields = line.split('\t');  // 使用制表符拆分
+    if (fields.length !== 10) {
+        throw new Error(`行格式不正确，期望10个字段，实际得到${fields.length}个字段。行内容：${line}`);
+    }
     return {
         交易日期: fields[0],
         记账日期: fields[1],
         记账币种: fields[2],
         卡号: fields[3],
         交易类型: fields[4],
-        交易描述: fields.slice(5, fields.length - 4).join(' '),  // 描述可能包含空格
-        存入金额: parseAmount(fields[fields.length - 4]),
-        支出金额: parseAmount(fields[fields.length - 3]),
-        交易币种: fields[fields.length - 2],
-        交易金额: parseAmount(fields[fields.length - 1])!,
+        交易描述: fields[5],
+        存入金额: parseAmount(fields[6]),
+        支出金额: parseAmount(fields[7]),
+        交易币种: fields[8],
+        交易金额: parseAmount(fields[9])!,
     };
 }
 
@@ -60,14 +69,14 @@ function exportToExcel(records: TransactionRecord[], outputFilePath: string) {
 
 // 主程序
 function main() {
-    const file_prefix = '2024-9'
+    const file_prefix = '2024-9';
     const inputFilePath = path.join(__dirname, 'datas', `${file_prefix}.txt`);  // txt 文件路径
     const outputFilePath = path.join(__dirname, 'outputs', `${file_prefix}.xlsx`);  // 输出 excel 文件路径
 
     const records = parseTxtFile(inputFilePath);
     exportToExcel(records, outputFilePath);
 
-    console.log(`Excel file has been created: ${outputFilePath}`);
+    console.log(`Excel 文件已创建：${outputFilePath}`);
 }
 
 main();
