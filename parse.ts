@@ -111,7 +111,7 @@ function exportToExcel(records: TransactionRecord[], outputFilePath: string) {
 
 // 主程序
 function main() {
-    const file_prefix = '2024-10';
+    const file_prefix = '2024-11';
     const inputFilePath = path.join(__dirname, 'datas', `${file_prefix}.txt`);  // txt 文件路径
     const outputFilePath = path.join(__dirname, 'outputs', `${file_prefix}.xlsx`);  // 输出 Excel 文件路径
 
